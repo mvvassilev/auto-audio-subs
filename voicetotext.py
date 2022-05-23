@@ -5,7 +5,7 @@ class VoiceToTextConverter:
     def __init__(self) -> None:
         self.recognizer = sr.Recognizer()
 
-    def convert_to_text(self, audio_input_path):
+    def convert_to_text(self, audio_input_path) -> str:
         try:
             with sr.AudioFile(audio_input_path) as audio:
                 self.recognizer.adjust_for_ambient_noise(audio)
