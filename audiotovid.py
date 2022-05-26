@@ -13,4 +13,6 @@ if __name__ == "__main__":
     print(f'Converting file {audio_input_path} to subtitle file...')
     audio_converter = VoiceToTextConverter()
     text = audio_converter.convert_to_text(audio_input_path=audio_input_path)
+    video_converter = TextToVideoConverter(video_input_path)
+    video_converter.capture(text)
     print(text)
