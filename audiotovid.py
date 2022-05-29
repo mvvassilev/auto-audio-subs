@@ -15,4 +15,3 @@ if __name__ == "__main__":
     text = audio_converter.convert_to_text(audio_input_path=audio_input_path)
     video_converter = TextToVideoConverter(background)
     video_converter.capture(text, video_output_path)
-    print(text)
