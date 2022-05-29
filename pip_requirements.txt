@@ -1,0 +1,3 @@
+opencv-python==4.5.5.64
+regex==2022.4.24
+SpeechRecognition==3.8.1

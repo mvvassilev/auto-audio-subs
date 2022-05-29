@@ -1,8 +1,5 @@
-from time import sleep
-from click import progressbar
 import cv2
 import os
-import numpy as np
 from textsplitter import TextSplitter
 import textwrap
 
@@ -18,6 +15,7 @@ heading_font = cv2.FONT_HERSHEY_COMPLEX
 title_font = cv2.FONT_HERSHEY_TRIPLEX
 body_font = cv2.FONT_HERSHEY_COMPLEX
 text_width = 50
+
 
 class TextToVideoConverter:
 
