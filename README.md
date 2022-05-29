@@ -5,5 +5,13 @@ Outputs a video file that acts as subtitles from the audio input
 Takes an audio file as an input and provides a video file that consits of the speach from the audio converted into subtitled text. The conversion is done into small parts around 1-2 sentences, formatted and showing a progress bar underneath indicating how far into the audio it is.
 
 # Usage
-TODO
-> python ...
+First make sure your python enviroment is setup properly
+Install all packages in "pip_requirements.txt"
+> pip install -r pip_requirements.txt
+
+Run command:
+> python audiotovid.py SAMPLE_AUDIO.mp3
+
+# Note
+Running the following displays the help menu
+> python audiotovid.py --help
