@@ -6,18 +6,18 @@ import numpy as np
 from textsplitter import TextSplitter
 import textwrap
 
-heading_weight = 1
-title_weight = 1
-body_weight = 1
+heading_weight = 2
+title_weight = 2
+body_weight = 2
 
-heading_size = 1
-title_size = 1
-body_size = 1
+heading_size = 2
+title_size = 2
+body_size = 2
 
 heading_font = cv2.FONT_HERSHEY_COMPLEX
 title_font = cv2.FONT_HERSHEY_TRIPLEX
 body_font = cv2.FONT_HERSHEY_COMPLEX
-
+text_width = 50
 
 class TextToVideoConverter:
 
@@ -53,22 +53,21 @@ class TextToVideoConverter:
             video_bg = cv2.imread(self.background)
             sentence += next(sentence_iterator, "") + next(sentence_iterator, "") + \
                 next(sentence_iterator, "") + \
-                next(sentence_iterator, "") + \
                 next(sentence_iterator, "")
             # TODO: make width dynamic
-            for i, line in enumerate(textwrap.wrap(sentence, width=80)):
+            for i, line in enumerate(textwrap.wrap(sentence, text_width)):
                 textsize = cv2.getTextSize(
                     line, heading_font, heading_size, heading_weight)[0]
 
-                gap = textsize[1] + 10
+                gap = textsize[1] + 40
 
-                y = int((video_bg.shape[0] + textsize[1]) / 2) + i * gap
+                y = int((video_bg.shape[0] + textsize[1]) / 4) + i * gap
                 x = int((video_bg.shape[1] - textsize[0]) / 2)
 
                 cv2.putText(video_bg,
                             line,
                             (x, y),
-                            heading_font, 1,
+                            heading_font, heading_size,
                             (0, 0, 0),  # rgb
                             heading_weight,
                             cv2.LINE_AA)
