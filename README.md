@@ -12,6 +12,8 @@ Install all packages in "pip_requirements.txt"
 Run command:
 > python audiotovid.py SAMPLE_AUDIO.mp3
 
+The command outputs a "video.mp4" file in the working directory
+
 # Note
 Running the following displays the help menu
 > python audiotovid.py --help
