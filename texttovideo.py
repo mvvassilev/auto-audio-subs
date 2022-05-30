@@ -23,7 +23,7 @@ class TextToVideoConverter:
         self.background = background
         self.text_splitter = TextSplitter()
         self.height, self.width, _ = cv2.imread(self.background).shape
-        self.segment_lenght = 70
+        self.segment_lenght = 280
 
     def add_progress_bar(self, frame, moment) -> None:
         thickness = 20
@@ -34,7 +34,7 @@ class TextToVideoConverter:
         cv2.line(frame, (start_x, start_y), (end_x, end_y),
                  (0, 0, 255), thickness)
 
-    def capture(self, text, video_output_path):
+    def capture(self, text_list, video_output_path):
         video_bg = cv2.imread(self.background)
         self.height, self.width, _ = video_bg.shape
         size = (self.width, self.height)
@@ -42,12 +42,12 @@ class TextToVideoConverter:
         x, y = 0, 5
 
         vid_writer = cv2.VideoWriter(
-            video_output_path, cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
-        text_list = self.text_splitter.split_into_sentences(text)
+            video_output_path, cv2.VideoWriter_fourcc('m', 'p', '4', 'v'), 15, size)
         sentence_iterator = iter(text_list)
         for sentence in sentence_iterator:
             video_bg = cv2.imread(self.background)
-            sentence += next(sentence_iterator, "") + next(sentence_iterator, "") + \
+            sentence += \
+                next(sentence_iterator, "") + \
                 next(sentence_iterator, "") + \
                 next(sentence_iterator, "")
             for i, line in enumerate(textwrap.wrap(sentence, text_width)):
@@ -75,4 +75,5 @@ class TextToVideoConverter:
 
         vid_writer.release()
         os.system('rm -rf dbg/TEMP_*.png')  # remove temp image
+        os.system('rm -rf dbg/audio_chunks/*')  # remove temp audio chunks
         cv2.destroyAllWindows()
