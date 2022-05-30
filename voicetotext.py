@@ -1,13 +1,14 @@
+from numpy import floor_divide
 import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
+from math import floor
 
 
 class VoiceToTextConverter:
 
     def __init__(self) -> None:
         self.recognizer = sr.Recognizer()
-        self.text_list = []
 
     def convert_to_text(self, audio_input_path) -> str:
         # handle mp3 conversion
@@ -17,25 +18,29 @@ class VoiceToTextConverter:
             audio.export(audio_input_path, format='wav')
 
         try:
+            audio_segment = AudioSegment.from_wav(audio_input_path)
             # split audio to sentences
             chunks = split_on_silence(
-                AudioSegment.from_wav(audio_input_path),
-                min_silence_len=400,
-                silence_thresh=-55,
-                keep_silence=10)
+                audio_segment,
+                min_silence_len=900,
+                silence_thresh=(audio_segment.dBFS)-16,
+                keep_silence=200)
             iterator = 0
+            text_list = [None] * len(chunks)
             for chunk in chunks:
                 audio_file = f'dbg/audio_chunks/chunk_{iterator}.wav'
-                chunk.export(audio_file, bitrate='192k', format="wav")
+                chunk.export(audio_file, format="wav")
                 with sr.AudioFile(audio_file) as audio:
-                    self.recognizer.adjust_for_ambient_noise(audio)
                     audiodata = self.recognizer.record(audio)
-                    try:
-                        self.text_list.append(self.recognizer.recognize_google(
-                            audio_data=audiodata, language='en-US'))
-                    except Exception as e:
-                        print(e)
+                try:
+                    text = self.recognizer.recognize_google(audiodata) + " "
+                    text_list[iterator] = text
+                except Exception as e:
+                    print(e)
                 iterator += 1
+                # conversion progress
+                print(
+                    f'converting {floor(iterator*100/len(chunks))}%...')
         except Exception as e:
             print(e)
-        return self.text_list
+        return text_list

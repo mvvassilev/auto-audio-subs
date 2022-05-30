@@ -2,6 +2,7 @@ import cv2
 import os
 from textsplitter import TextSplitter
 import textwrap
+from sys import platform
 
 heading_weight = 2
 title_weight = 2
@@ -74,6 +75,11 @@ class TextToVideoConverter:
                 vid_writer.write(current_frame)
 
         vid_writer.release()
-        os.system('rm -rf dbg/TEMP_*.png')  # remove temp image
-        os.system('rm -rf dbg/audio_chunks/*')  # remove temp audio chunks
+        # remove temp images and audio chunks (OS spec)
+        if platform == "linux" or platform == "linux2":
+            os.system('rm -rf dbg/TEMP_*.png')
+            os.system('rm -rf dbg/audio_chunks/*')
+        elif platform == "win32":
+            os.system('del /f dbg/TEMP_*.png')
+            os.system('del /f dbg/audio_chunks/*')
         cv2.destroyAllWindows()
