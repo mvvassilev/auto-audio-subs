@@ -7,8 +7,9 @@ from math import floor
 
 class VoiceToTextConverter:
 
-    def __init__(self) -> None:
+    def __init__(self, language) -> None:
         self.recognizer = sr.Recognizer()
+        self.language = language
 
     def convert_to_text(self, audio_input_path) -> str:
         # handle mp3 conversion
@@ -33,7 +34,7 @@ class VoiceToTextConverter:
                 with sr.AudioFile(audio_file) as audio:
                     audiodata = self.recognizer.record(audio)
                 try:
-                    text = self.recognizer.recognize_google(audiodata) + " "
+                    text = self.recognizer.recognize_google(audiodata, language=self.language) + " "
                     text_list[iterator] = text
                 except Exception as e:
                     print(e)
