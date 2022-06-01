@@ -20,20 +20,27 @@ text_width = 50
 
 class TextToVideoConverter:
 
-    def __init__(self, background) -> None:
+    def __init__(self, background, duration, audio_len_list) -> None:
         self.background = background
         self.text_splitter = TextSplitter()
         self.height, self.width, _ = cv2.imread(self.background).shape
-        self.segment_lenght = 280
+        self.duration = duration * 15  # multiply by the fps
+        self.segment_lenght_list = list(audio_len_list)
+        self.fullvid_frame = 0
 
-    def add_progress_bar(self, frame, moment) -> None:
+    def add_progress_bar(self, frame) -> None:
         thickness = 20
         start_x = 0
         start_y = self.height - 100
-        end_x = int(moment*(self.width / self.segment_lenght))
+        end_x = int(self.fullvid_frame*(self.width / self.duration))
         end_y = start_y
         cv2.line(frame, (start_x, start_y), (end_x, end_y),
                  (0, 0, 255), thickness)
+
+    def add_next(self, value, iterator, items_count, default_value):
+        for _ in range(items_count):
+            value += next(iterator, default_value)
+        return value
 
     def capture(self, text_list, video_output_path):
         video_bg = cv2.imread(self.background)
@@ -47,10 +54,7 @@ class TextToVideoConverter:
         sentence_iterator = iter(text_list)
         for sentence in sentence_iterator:
             video_bg = cv2.imread(self.background)
-            sentence += \
-                next(sentence_iterator, "") + \
-                next(sentence_iterator, "") + \
-                next(sentence_iterator, "")
+            sentence = self.add_next(sentence, sentence_iterator, 3, "")
             for i, line in enumerate(textwrap.wrap(sentence, text_width)):
                 textsize = cv2.getTextSize(
                     line, heading_font, heading_size, heading_weight)[0]
@@ -69,10 +73,15 @@ class TextToVideoConverter:
                             cv2.LINE_AA)
                 # create a temp image with text
                 cv2.imwrite(f'dbg/TEMP_{i}.png', video_bg)
-            for current_moment in range(self.segment_lenght):
+            segment_iterator = iter(self.segment_lenght_list)
+            segment_len = 0
+            segment_len = self.add_next(segment_len, segment_iterator, 4, 0)
+            for _ in range(int(segment_len*17)):
                 current_frame = cv2.imread(f'dbg/TEMP_{i}.png')
-                self.add_progress_bar(current_frame, current_moment)
+                self.add_progress_bar(current_frame)
                 vid_writer.write(current_frame)
+                self.fullvid_frame += 1  # move to the next frame number
+                self.add_next(segment_len, segment_iterator, 4, 0)
 
         vid_writer.release()
         # remove temp images and audio chunks (OS spec)

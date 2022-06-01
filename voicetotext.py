@@ -1,4 +1,3 @@
-from numpy import floor_divide
 import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
@@ -10,6 +9,7 @@ class VoiceToTextConverter:
     def __init__(self, language) -> None:
         self.recognizer = sr.Recognizer()
         self.language = language
+        self.audio_duration = 0
 
     def convert_to_text(self, audio_input_path) -> str:
         # handle mp3 conversion
@@ -21,6 +21,7 @@ class VoiceToTextConverter:
         try:
             audio_segment = AudioSegment.from_wav(audio_input_path)
             # split audio to sentences
+            self.audio_duration = audio_segment.duration_seconds
             chunks = split_on_silence(
                 audio_segment,
                 min_silence_len=900,
@@ -28,13 +29,15 @@ class VoiceToTextConverter:
                 keep_silence=200)
             iterator = 0
             text_list = [None] * len(chunks)
+            audio_len_list = [None] * len(chunks)
             for chunk in chunks:
+                audio_len_list[iterator] = chunk.duration_seconds
                 audio_file = f'dbg/audio_chunks/chunk_{iterator}.wav'
                 chunk.export(audio_file, format="wav")
                 with sr.AudioFile(audio_file) as audio:
                     audiodata = self.recognizer.record(audio)
                 try:
-                    text = self.recognizer.recognize_google(audiodata, language=self.language) + " "
+                    text = self.recognizer.recognize_google(audiodata, language=self.language) + " "    
                     text_list[iterator] = text
                 except Exception as e:
                     print(e)
@@ -44,4 +47,4 @@ class VoiceToTextConverter:
                     f'converting {floor(iterator*100/len(chunks))}%...')
         except Exception as e:
             print(e)
-        return text_list
+        return text_list, audio_len_list, self.audio_duration
