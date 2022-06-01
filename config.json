@@ -1,0 +1,12 @@
+{
+    "progress-bar-enabled": "on",
+    "progress-bar-position": "bottom",
+    "progress-bar-color:": "#648",
+    "background-color": "#ff0",
+    "text-font-family": "sans-serif",
+    "chapter-timestamps": {
+        "1": "00:00:00",
+        "2": "00:05:06",
+        "3": "00:16:06"
+    }
+}
