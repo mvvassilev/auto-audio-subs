@@ -46,14 +46,6 @@ class TextToVideoConverter:
             value += next(iterator, default_value)
         return value
 
-    def justify(self, text, width) -> str:
-        prev_text = text
-        while((l := width-len(text)) > 0):
-            text = re.sub(r"(\s+)", r"\1 ", text, count=l)
-            if(text == prev_text):
-                break
-        return text.rjust(width)
-
     def display_heading(self):
         pass
 
