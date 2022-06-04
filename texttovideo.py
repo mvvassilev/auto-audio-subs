@@ -4,6 +4,7 @@ from textsplitter import TextSplitter
 import textwrap
 from sys import platform
 import ffmpeg
+import re
 
 heading_weight = 2
 title_weight = 2
@@ -45,7 +46,21 @@ class TextToVideoConverter:
             value += next(iterator, default_value)
         return value
 
-    def capture(self, text_list, video_output_path, audio_input_path):
+    def justify(self, text, width) -> str:
+        prev_text = text
+        while((l := width-len(text)) > 0):
+            text = re.sub(r"(\s+)", r"\1 ", text, count=l)
+            if(text == prev_text):
+                break
+        return text.rjust(width)
+
+    def display_heading(self):
+        pass
+
+    def display_title(self):
+        pass
+
+    def display_frames(self, text_list):
         video_bg = cv2.imread(self.background)
         self.height, self.width, _ = video_bg.shape
         size = (self.width, self.height)
@@ -60,7 +75,7 @@ class TextToVideoConverter:
             sentence = self.add_next(sentence, sentence_iterator, 3, "")
             for i, line in enumerate(textwrap.wrap(sentence, text_width)):
                 textsize = cv2.getTextSize(
-                    line, heading_font, heading_size, heading_weight)[0]
+                    line, body_font, body_size, body_weight)[0]
 
                 gap = textsize[1] + 40
 
@@ -70,9 +85,9 @@ class TextToVideoConverter:
                 cv2.putText(video_bg,
                             line,
                             (x, y),
-                            heading_font, heading_size,
+                            body_font, body_size,
                             (0, 0, 0),  # rgb
-                            heading_weight,
+                            body_weight,
                             cv2.LINE_AA)
                 # create a temp image with text
                 cv2.imwrite(f'dbg/TEMP_{i}.png', video_bg)
@@ -85,15 +100,17 @@ class TextToVideoConverter:
                 vid_writer.write(current_frame)
                 self.fullvid_frame += 1  # move to the next frame number
                 self.add_next(segment_len, segment_iterator, 4, 0)
-
         vid_writer.release()
 
-        # add audio to video file
-        ffmpeg_vid = ffmpeg.input(noaudio_video_filename)
-        ffmpeg_aud = ffmpeg.input(audio_input_path)
-        ffmpeg.concat(ffmpeg_vid, ffmpeg_aud, v=1,
-                      a=1).output(video_output_path).run()
+    def setup_for_capture(self, video_output_path):
+        # deletes "video_output_path" file if already exists (OS spec)
+        if os.path.isfile(video_output_path):
+            if platform == "linux" or platform == "linux2":
+                os.system(f'rm -rf {video_output_path}')
+            elif platform == "win32":
+                os.system(f'del /f {video_output_path}')
 
+    def cleanup(self):
         # remove temp images and audio chunks (OS spec)
         if platform == "linux" or platform == "linux2":
             os.system('rm -rf dbg/TEMP_*.png')
@@ -104,3 +121,18 @@ class TextToVideoConverter:
             os.system('del /f dbg/audio_chunks/*')
             os.system(f'del /f {noaudio_video_filename}')
         cv2.destroyAllWindows()
+
+    def capture(self, text_list, video_output_path, audio_input_path):
+        # sets up env and files
+        self.setup_for_capture(video_output_path)
+
+        # writes the frames to the video
+        self.display_frames(text_list)
+
+        # add audio to video file
+        ffmpeg_vid = ffmpeg.input(noaudio_video_filename)
+        ffmpeg_aud = ffmpeg.input(audio_input_path)
+        ffmpeg.concat(ffmpeg_vid, ffmpeg_aud, v=1,
+                      a=1).output(video_output_path).run()
+
+        self.cleanup()
