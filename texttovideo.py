@@ -3,6 +3,7 @@ import os
 from textsplitter import TextSplitter
 import textwrap
 from sys import platform
+import ffmpeg
 
 heading_weight = 2
 title_weight = 2
@@ -16,6 +17,8 @@ heading_font = cv2.FONT_HERSHEY_COMPLEX
 title_font = cv2.FONT_HERSHEY_TRIPLEX
 body_font = cv2.FONT_HERSHEY_COMPLEX
 text_width = 50
+
+noaudio_video_filename = "only_video.mp4"
 
 
 class TextToVideoConverter:
@@ -42,7 +45,7 @@ class TextToVideoConverter:
             value += next(iterator, default_value)
         return value
 
-    def capture(self, text_list, video_output_path):
+    def capture(self, text_list, video_output_path, audio_input_path):
         video_bg = cv2.imread(self.background)
         self.height, self.width, _ = video_bg.shape
         size = (self.width, self.height)
@@ -50,7 +53,7 @@ class TextToVideoConverter:
         x, y = 0, 5
 
         vid_writer = cv2.VideoWriter(
-            video_output_path, cv2.VideoWriter_fourcc('m', 'p', '4', 'v'), 15, size)
+            noaudio_video_filename, cv2.VideoWriter_fourcc('m', 'p', '4', 'v'), 15, size)
         sentence_iterator = iter(text_list)
         for sentence in sentence_iterator:
             video_bg = cv2.imread(self.background)
@@ -84,11 +87,20 @@ class TextToVideoConverter:
                 self.add_next(segment_len, segment_iterator, 4, 0)
 
         vid_writer.release()
+
+        # add audio to video file
+        ffmpeg_vid = ffmpeg.input(noaudio_video_filename)
+        ffmpeg_aud = ffmpeg.input(audio_input_path)
+        ffmpeg.concat(ffmpeg_vid, ffmpeg_aud, v=1,
+                      a=1).output(video_output_path).run()
+
         # remove temp images and audio chunks (OS spec)
         if platform == "linux" or platform == "linux2":
             os.system('rm -rf dbg/TEMP_*.png')
             os.system('rm -rf dbg/audio_chunks/*')
+            os.system(f'rm -rf {noaudio_video_filename}')
         elif platform == "win32":
             os.system('del /f dbg/TEMP_*.png')
             os.system('del /f dbg/audio_chunks/*')
+            os.system(f'del /f {noaudio_video_filename}')
         cv2.destroyAllWindows()
