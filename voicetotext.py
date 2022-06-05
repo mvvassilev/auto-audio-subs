@@ -44,7 +44,7 @@ class VoiceToTextConverter:
                 iterator += 1
                 # conversion progress
                 print(
-                    f'converting {floor(iterator*100/len(chunks))}%...')
+                    f'converting audio {floor(iterator*100/len(chunks))}%...')
         except Exception as e:
             print(e)
         return text_list, audio_len_list, self.audio_duration

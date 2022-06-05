@@ -18,6 +18,9 @@ heading_font = cv2.FONT_HERSHEY_COMPLEX
 title_font = cv2.FONT_HERSHEY_TRIPLEX
 body_font = cv2.FONT_HERSHEY_COMPLEX
 text_width = 50
+heading_offset_y = 100
+title_offset = 100
+heading_height = 400  # calculate
 
 noaudio_video_filename = "only_video.mp4"
 
@@ -31,6 +34,7 @@ class TextToVideoConverter:
         self.duration = duration * 15  # multiply by the fps
         self.segment_lenght_list = list(audio_len_list)
         self.fullvid_frame = 0
+        self.last_x = 0
 
     def add_progress_bar(self, frame) -> None:
         thickness = 20
@@ -46,52 +50,103 @@ class TextToVideoConverter:
             value += next(iterator, default_value)
         return value
 
-    def display_heading(self):
-        pass
+    def display_heading(self, tmp_image, video_bg):
+        heading_number = 1
+        heading_name = f"CHAPTER {heading_number}"
+        textsize = cv2.getTextSize(
+            heading_name, heading_font, heading_size, heading_weight)[0]
+        y = heading_offset_y
+        x = int((self.width - textsize[0]) / 2)
+        cv2.putText(video_bg,
+                    heading_name,
+                    (x, y),
+                    heading_font, heading_size,
+                    (0, 0, 0),  # rgb
+                    heading_weight,
+                    cv2.LINE_AA)
+        cv2.imwrite(tmp_image, video_bg)
 
-    def display_title(self):
-        pass
+    def display_title(self, tmp_image, video_bg):
+        title_name = "Test title for testing"
+        textsize = cv2.getTextSize(
+            title_name, title_font, title_size, title_weight)[0]
+        y = heading_offset_y + title_offset
+        x = int((self.width - textsize[0]) / 2)
+        cv2.putText(video_bg,
+                    title_name,
+                    (x, y),
+                    title_font, title_size,
+                    (0, 0, 0),  # rgb
+                    title_weight,
+                    cv2.LINE_AA)
+        cv2.imwrite(tmp_image, video_bg)
+
+    def draw_text(self, count, line, width, video_bg, is_last):
+        tmp_image = f'dbg/TEMP_{count}.png'
+
+        previous_line = line
+        if not is_last:
+            while((l := width-len(line)) > 0):
+                line = re.sub(r"(\s+)", r"\1 ", line, count=l)
+                if(line == previous_line):
+                    break
+
+        textsize = cv2.getTextSize(
+            line, body_font, body_size, body_weight)[0]
+
+        gap = textsize[1] + 40
+
+        y = heading_height + count * gap
+        x = int((self.width - textsize[0]) / 2.3)
+        if not is_last:
+            self.last_x = x
+        x = self.last_x
+
+        cv2.putText(video_bg,
+                    line,
+                    (x, y),
+                    body_font, body_size,
+                    (0, 0, 0),  # rgb
+                    body_weight,
+                    cv2.LINE_AA)
+        # create a temp image with text
+        cv2.imwrite(tmp_image, video_bg)
+        self.display_heading(tmp_image, video_bg)
+        self.display_title(tmp_image, video_bg)
 
     def display_frames(self, text_list):
         video_bg = cv2.imread(self.background)
         self.height, self.width, _ = video_bg.shape
         size = (self.width, self.height)
 
-        x, y = 0, 5
-
         vid_writer = cv2.VideoWriter(
             noaudio_video_filename, cv2.VideoWriter_fourcc('m', 'p', '4', 'v'), 15, size)
         sentence_iterator = iter(text_list)
         for sentence in sentence_iterator:
             video_bg = cv2.imread(self.background)
-            sentence = self.add_next(sentence, sentence_iterator, 3, "")
-            for i, line in enumerate(textwrap.wrap(sentence, text_width)):
-                textsize = cv2.getTextSize(
-                    line, body_font, body_size, body_weight)[0]
+            sentence = self.add_next(sentence, sentence_iterator, 2, "")
 
-                gap = textsize[1] + 40
+            wrapper = textwrap.TextWrapper(width=text_width)
+            dedented_text = textwrap.dedent(text=sentence)
 
-                y = int((video_bg.shape[0] + textsize[1]) / 4) + i * gap
-                x = int((video_bg.shape[1] - textsize[0]) / 2)
+            text = wrapper.fill(text=dedented_text)
 
-                cv2.putText(video_bg,
-                            line,
-                            (x, y),
-                            body_font, body_size,
-                            (0, 0, 0),  # rgb
-                            body_weight,
-                            cv2.LINE_AA)
-                # create a temp image with text
-                cv2.imwrite(f'dbg/TEMP_{i}.png', video_bg)
+            i = 0
+            lines = text.splitlines()
+            for count, line in enumerate(lines):
+                is_line_last = True if count == len(lines) - 1 else False
+                self.draw_text(count, line, text_width, video_bg, is_line_last)
+                i += 1
+
             segment_iterator = iter(self.segment_lenght_list)
             segment_len = 0
-            segment_len = self.add_next(segment_len, segment_iterator, 4, 0)
+            segment_len = self.add_next(segment_len, segment_iterator, 3, 0)
             for _ in range(int(segment_len*17)):
-                current_frame = cv2.imread(f'dbg/TEMP_{i}.png')
+                current_frame = cv2.imread(f'dbg/TEMP_{count}.png')
                 self.add_progress_bar(current_frame)
                 vid_writer.write(current_frame)
                 self.fullvid_frame += 1  # move to the next frame number
-                self.add_next(segment_len, segment_iterator, 4, 0)
+                self.add_next(segment_len, segment_iterator, 3, 0)
         vid_writer.release()
 
     def setup_for_capture(self, video_output_path):
