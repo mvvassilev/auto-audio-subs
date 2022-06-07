@@ -1,7 +1,7 @@
 {
     "progress-bar-enabled": "on",
     "progress-bar-position": "bottom",
-    "progress-bar-color:": "#648",
+    "progress-bar-color:": [102, 68, 136],
     "background-color": "#ff0",
     "text-font-family": "sans-serif",
     "chapter-timestamps": {
@@ -14,4 +14,4 @@
         "2": "Title for chapter two",
         "3": "Title for chapter three"
     }
-} 
+}

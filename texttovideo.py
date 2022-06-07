@@ -44,11 +44,12 @@ class TextToVideoConverter:
     def add_progress_bar(self, frame) -> None:
         thickness = 20
         start_x = 0
+        line_color = self.json_config["progress-bar-color:"]
         start_y = self.height - 100
         end_x = int(self.fullvid_frame*(self.width / self.duration))
         end_y = start_y
         cv2.line(frame, (start_x, start_y), (end_x, end_y),
-                 (0, 0, 255), thickness)
+                 line_color, thickness)
 
     def add_next(self, value, iterator, items_count, default_value):
         for _ in range(items_count):
@@ -57,7 +58,7 @@ class TextToVideoConverter:
 
     def get_chapter_num(self, frame):
         chapter = 1
-        total_len = int (frame / 15)
+        total_len = int(frame / 15)
         ch_timestamps = self.json_config["chapter-timestamps"]
         for i in range(1, len(ch_timestamps) + 1):
             ch_time = self.timestamp_to_sec(ch_timestamps[f"{i}"])
@@ -161,7 +162,8 @@ class TextToVideoConverter:
                 chapter_number = self.get_chapter_num(self.fullvid_frame)
                 tmp_image_no_heading = f'dbg/TEMP_{count}.png'
                 tmp_image = f'dbg/TEMP_{chapter_number}_{count}.png'
-                self.display_heading(tmp_image, tmp_image_no_heading, chapter_number)
+                self.display_heading(
+                    tmp_image, tmp_image_no_heading, chapter_number)
                 self.display_title(tmp_image, tmp_image, chapter_number)
                 current_frame = cv2.imread(tmp_image)
                 if self.json_config["progress-bar-enabled"] == "on":
