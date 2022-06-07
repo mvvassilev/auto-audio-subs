@@ -18,23 +18,28 @@ heading_font = cv2.FONT_HERSHEY_COMPLEX
 title_font = cv2.FONT_HERSHEY_TRIPLEX
 body_font = cv2.FONT_HERSHEY_COMPLEX
 text_width = 50
-heading_offset_y = 100
+heading_offset_y = 200
 title_offset = 100
-heading_height = 400  # calculate
+heading_height = 450
 
 noaudio_video_filename = "only_video.mp4"
 
 
 class TextToVideoConverter:
 
-    def __init__(self, background, duration, audio_len_list) -> None:
+    def __init__(self, background, duration, audio_len_list, json_config) -> None:
         self.background = background
+        self.json_config = json_config
         self.text_splitter = TextSplitter()
         self.height, self.width, _ = cv2.imread(self.background).shape
         self.duration = duration * 15  # multiply by the fps
         self.segment_lenght_list = list(audio_len_list)
         self.fullvid_frame = 0
         self.last_x = 0
+
+    def timestamp_to_sec(self, timestamp_string):
+        hours, minutes, seconds = timestamp_string.split(':')
+        return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
 
     def add_progress_bar(self, frame) -> None:
         thickness = 20
@@ -50,13 +55,24 @@ class TextToVideoConverter:
             value += next(iterator, default_value)
         return value
 
-    def display_heading(self, tmp_image, video_bg):
-        heading_number = 1
+    def get_chapter_num(self, frame):
+        chapter = 1
+        total_len = int (frame / 15)
+        ch_timestamps = self.json_config["chapter-timestamps"]
+        for i in range(1, len(ch_timestamps) + 1):
+            ch_time = self.timestamp_to_sec(ch_timestamps[f"{i}"])
+            if ch_time < total_len:
+                chapter = i
+        return chapter
+
+    def display_heading(self, tmp_image, video_bg, chapter_number):
+        heading_number = chapter_number
         heading_name = f"CHAPTER {heading_number}"
         textsize = cv2.getTextSize(
             heading_name, heading_font, heading_size, heading_weight)[0]
         y = heading_offset_y
         x = int((self.width - textsize[0]) / 2)
+        video_bg = cv2.imread(video_bg)
         cv2.putText(video_bg,
                     heading_name,
                     (x, y),
@@ -66,12 +82,14 @@ class TextToVideoConverter:
                     cv2.LINE_AA)
         cv2.imwrite(tmp_image, video_bg)
 
-    def display_title(self, tmp_image, video_bg):
-        title_name = "Test title for testing"
+    def display_title(self, tmp_image, video_bg, chapter_number):
+        titles = self.json_config["chapter-titles"]
+        title_name = titles[f"{chapter_number}"]
         textsize = cv2.getTextSize(
             title_name, title_font, title_size, title_weight)[0]
         y = heading_offset_y + title_offset
         x = int((self.width - textsize[0]) / 2)
+        video_bg = cv2.imread(video_bg)
         cv2.putText(video_bg,
                     title_name,
                     (x, y),
@@ -111,8 +129,6 @@ class TextToVideoConverter:
                     cv2.LINE_AA)
         # create a temp image with text
         cv2.imwrite(tmp_image, video_bg)
-        self.display_heading(tmp_image, video_bg)
-        self.display_title(tmp_image, video_bg)
 
     def display_frames(self, text_list):
         video_bg = cv2.imread(self.background)
@@ -142,11 +158,17 @@ class TextToVideoConverter:
             segment_len = 0
             segment_len = self.add_next(segment_len, segment_iterator, 3, 0)
             for _ in range(int(segment_len*17)):
-                current_frame = cv2.imread(f'dbg/TEMP_{count}.png')
+                chapter_number = self.get_chapter_num(self.fullvid_frame)
+                tmp_image_no_heading = f'dbg/TEMP_{count}.png'
+                tmp_image = f'dbg/TEMP_{chapter_number}_{count}.png'
+                self.display_heading(tmp_image, tmp_image_no_heading, chapter_number)
+                self.display_title(tmp_image, tmp_image, chapter_number)
+                current_frame = cv2.imread(tmp_image)
                 self.add_progress_bar(current_frame)
                 vid_writer.write(current_frame)
                 self.fullvid_frame += 1  # move to the next frame number
-                self.add_next(segment_len, segment_iterator, 3, 0)
+                segment_len = self.add_next(
+                    segment_len, segment_iterator, 3, 0)
         vid_writer.release()
 
     def setup_for_capture(self, video_output_path):
@@ -160,11 +182,11 @@ class TextToVideoConverter:
     def cleanup(self):
         # remove temp images and audio chunks (OS spec)
         if platform == "linux" or platform == "linux2":
-            os.system('rm -rf dbg/TEMP_*.png')
+            os.system('rm -rf dbg/TEMP_*')
             os.system('rm -rf dbg/audio_chunks/*')
             os.system(f'rm -rf {noaudio_video_filename}')
         elif platform == "win32":
-            os.system('del /f dbg/TEMP_*.png')
+            os.system('del /f dbg/TEMP_*')
             os.system('del /f dbg/audio_chunks/*')
             os.system(f'del /f {noaudio_video_filename}')
         cv2.destroyAllWindows()

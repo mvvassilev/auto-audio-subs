@@ -6,7 +6,12 @@
     "text-font-family": "sans-serif",
     "chapter-timestamps": {
         "1": "00:00:00",
-        "2": "00:05:06",
-        "3": "00:16:06"
+        "2": "00:00:30",
+        "3": "00:01:00"
+    },
+    "chapter-titles": {
+        "1": "Title for chapter one",
+        "2": "Title for chapter two",
+        "3": "Title for chapter three"
     }
-}
+} 

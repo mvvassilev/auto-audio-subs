@@ -20,6 +20,6 @@ if __name__ == "__main__":
     text_list, audio_len_list, duration = audio_converter.convert_to_text(
         audio_input_path)
     video_converter = TextToVideoConverter(
-        background, duration, audio_len_list)
+        background, duration, audio_len_list, config_data)
     video_converter.capture(text_list, video_output_path, audio_input_path)
     print(f'Converted to {video_output_path}!')
