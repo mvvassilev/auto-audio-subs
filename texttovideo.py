@@ -164,7 +164,8 @@ class TextToVideoConverter:
                 self.display_heading(tmp_image, tmp_image_no_heading, chapter_number)
                 self.display_title(tmp_image, tmp_image, chapter_number)
                 current_frame = cv2.imread(tmp_image)
-                self.add_progress_bar(current_frame)
+                if self.json_config["progress-bar-enabled"] == "on":
+                    self.add_progress_bar(current_frame)
                 vid_writer.write(current_frame)
                 self.fullvid_frame += 1  # move to the next frame number
                 segment_len = self.add_next(
@@ -193,6 +194,7 @@ class TextToVideoConverter:
 
     def capture(self, text_list, video_output_path, audio_input_path):
         # sets up env and files
+        print("Generating video file ...")
         self.setup_for_capture(video_output_path)
 
         # writes the frames to the video
