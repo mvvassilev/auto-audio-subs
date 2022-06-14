@@ -9,14 +9,17 @@ import re
 heading_weight = 2
 title_weight = 2
 body_weight = 2
-
+progressbar_weight = 1
 heading_size = 2
 title_size = 2
 body_size = 2
+progressbar_size = 1
 
 heading_font = cv2.FONT_HERSHEY_COMPLEX
 title_font = cv2.FONT_HERSHEY_TRIPLEX
 body_font = cv2.FONT_HERSHEY_COMPLEX
+progressbar_font = cv2.FONT_HERSHEY_COMPLEX
+
 text_width = 50
 heading_offset_y = 200
 title_offset = 100
@@ -41,15 +44,62 @@ class TextToVideoConverter:
         hours, minutes, seconds = timestamp_string.split(':')
         return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
 
-    def add_progress_bar(self, frame) -> None:
-        thickness = 20
-        start_x = 0
+    def get_progressbar_sections_len(self) -> list:
+        ch_timestamps = self.json_config["chapter-timestamps"]
+        sections = []
+        for i in range(1, len(ch_timestamps) + 1):
+            ch_time = self.timestamp_to_sec(ch_timestamps[f"{i}"])
+            video_lenght = self.duration / 15  # divide by fps to get len in sec
+            sections.append(int(self.width*(ch_time/video_lenght)))
+        return sections
+
+    def display_progress(self, frame, thickness, start_x, start_y) -> None:
         line_color = self.json_config["progress-bar-color:"]
-        start_y = self.height - 100
         end_x = int(self.fullvid_frame*(self.width / self.duration))
         end_y = start_y
         cv2.line(frame, (start_x, start_y), (end_x, end_y),
                  line_color, thickness)
+
+    def display_pbar_sections(self, sections_len_list, frame):
+        thickness = 10
+        line_color = (255, 255, 255)  # white
+        for start_x in sections_len_list:
+            start_x += 10
+            end_x = start_x
+            start_y = self.height - 150
+            end_y = self.height - 50
+            cv2.line(frame, (start_x, start_y), (end_x, end_y),
+                     line_color, thickness)
+
+    def add_progress_bar(self, frame) -> None:
+        thickness = 50
+        start_x = 0
+        start_y = self.height - 100
+        end_x = self.width
+        end_y = start_y
+        line_color = (210, 210, 210)  # basic light grey
+        cv2.line(frame, (start_x, start_y), (end_x, end_y),
+                 line_color, thickness)
+
+        # shows current progress on bar
+        self.display_progress(frame, thickness, start_x, start_y)
+
+        progressbar_sections = self.get_progressbar_sections_len()
+        self.display_pbar_sections(progressbar_sections, frame)
+
+        chapter_number = 1
+        for progressbar_section in progressbar_sections:
+            ch_title = self.json_config["chapter-titles"][f"{chapter_number}"]
+            cv2.putText(frame,
+                        ch_title,
+                        (progressbar_section + 60,
+                         int(start_y + thickness/2 - 15)),
+                        progressbar_font,
+                        progressbar_size,
+                        (0, 0, 0),  # rgb
+                        progressbar_weight,
+                        cv2.LINE_AA)
+            chapter_number += 1
 
     def add_next(self, value, iterator, items_count, default_value):
         for _ in range(items_count):
