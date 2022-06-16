@@ -55,16 +55,17 @@ class TextToVideoConverter:
 
     def display_progress(self, frame, thickness, start_x, start_y) -> None:
         line_color = self.json_config["progress-bar-color:"]
+        start_y -= int(thickness/2)
         end_x = int(self.fullvid_frame*(self.width / self.duration))
-        end_y = start_y
-        cv2.line(frame, (start_x, start_y), (end_x, end_y),
-                 line_color, thickness)
+        end_y = int(start_y + thickness)
+        cv2.rectangle(frame, (start_x, start_y), (end_x, end_y),
+                      line_color, -1)
 
     def display_pbar_sections(self, sections_len_list, frame):
         thickness = 10
         line_color = (255, 255, 255)  # white
         for start_x in sections_len_list:
-            start_x += 10
+            start_x += 5
             end_x = start_x
             start_y = self.height - 150
             end_y = self.height - 50
