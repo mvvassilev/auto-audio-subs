@@ -189,6 +189,10 @@ class TextToVideoConverter:
 
         vid_writer = cv2.VideoWriter(
             noaudio_video_filename, cv2.VideoWriter_fourcc('m', 'p', '4', 'v'), 15, size)
+
+        # display thumbnail
+        vid_writer.write(cv2.imread(self.json_config["thumbnail"]))
+
         sentence_iterator = iter(text_list)
         for sentence in sentence_iterator:
             video_bg = cv2.imread(self.background)

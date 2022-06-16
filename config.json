@@ -2,6 +2,7 @@
     "progress-bar-enabled": "on",
     "progress-bar-position": "bottom",
     "progress-bar-color:": [102, 68, 136],
+    "thumbnail": "thumbnail.png",
     "background-color": "#ff0",
     "text-font-family": "sans-serif",
     "chapter-timestamps": {
