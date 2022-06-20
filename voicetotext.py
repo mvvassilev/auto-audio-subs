@@ -1,4 +1,4 @@
-import speech_recognition as sr
+import azure.cognitiveservices.speech as speechsdk
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
 from math import floor
@@ -7,7 +7,9 @@ from math import floor
 class VoiceToTextConverter:
 
     def __init__(self, language) -> None:
-        self.recognizer = sr.Recognizer()
+        self.speech_config = speechsdk.SpeechConfig(
+            subscription="5629aa77fbdd4e85a6c4763ecebf5e58", 
+            region="eastus")
         self.language = language
         self.audio_duration = 0
 
@@ -34,10 +36,12 @@ class VoiceToTextConverter:
                 audio_len_list[iterator] = chunk.duration_seconds
                 audio_file = f'dbg/audio_chunks/chunk_{iterator}.wav'
                 chunk.export(audio_file, format="wav")
-                with sr.AudioFile(audio_file) as audio:
-                    audiodata = self.recognizer.record(audio)
+                audio = speechsdk.AudioConfig(filename=audio_file)
                 try:
-                    text = self.recognizer.recognize_google(audiodata, language=self.language) + " "    
+                    recognizer = speechsdk.SpeechRecognizer(
+                        self.speech_config, audio_config=audio)
+                    output = recognizer.recognize_once_async().get()
+                    text = output.text + " "
                     text_list[iterator] = text
                 except Exception as e:
                     print(e)
