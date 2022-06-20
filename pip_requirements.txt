@@ -1,4 +1,8 @@
+azure-cognitiveservices-speech==1.22.0
+ffmpeg-python==0.2.0
 opencv-python==4.5.5.64
 regex==2022.4.24
 pydub==0.25.1
 SpeechRecognition==3.8.1
+text-tools==1.0.0
+tk==0.1.0

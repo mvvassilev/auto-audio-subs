@@ -56,7 +56,7 @@ class TextToVideoConverter:
     def display_progress(self, frame, thickness, start_x, start_y) -> None:
         line_color = self.json_config["progress-bar-color:"]
         start_y -= int(thickness/2)
-        end_x = int(self.fullvid_frame*(self.width / self.duration))
+        end_x = int(self.fullvid_frame*(self.width / self.duration)) + 1
         end_y = int(start_y + thickness)
         cv2.rectangle(frame, (start_x, start_y), (end_x, end_y),
                       line_color, -1)
