@@ -212,7 +212,7 @@ class TextToVideoConverter:
 
             segment_iterator = iter(self.segment_lenght_list)
             segment_len = 0
-            segment_len = self.add_next(segment_len, segment_iterator, 3, 0)
+            segment_len = self.add_next(segment_len, segment_iterator, 2, 0)
             for _ in range(int(segment_len*17)):
                 chapter_number = self.get_chapter_num(self.fullvid_frame)
                 tmp_image_no_heading = f'dbg/TEMP_{count}.png'
@@ -226,7 +226,7 @@ class TextToVideoConverter:
                 vid_writer.write(current_frame)
                 self.fullvid_frame += 1  # move to the next frame number
                 segment_len = self.add_next(
-                    segment_len, segment_iterator, 3, 0)
+                    segment_len, segment_iterator, 2, 0)
         vid_writer.release()
 
     def setup_for_capture(self, video_output_path):
