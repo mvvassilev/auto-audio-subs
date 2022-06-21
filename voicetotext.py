@@ -40,6 +40,7 @@ class VoiceToTextConverter:
             audio_len_list = [None] * len(chunks)
             for chunk in chunks:
                 silent_chunk = \
+                    0.2 + \
                     0.001 * (silent_chunks[iterator][1] -
                              silent_chunks[iterator][0])  # milisec to sec
                 audio_len_list[iterator] = \
