@@ -8,7 +8,6 @@ __version__ = "1.0.0"
 
 audio_input_path = CLI.args.audio_path
 language = CLI.args.language
-background = CLI.args.background
 video_output_path = CLI.args.video_out_path
 json_config = "config.json"
 
@@ -20,6 +19,6 @@ if __name__ == "__main__":
     text_list, audio_len_list, duration = audio_converter.convert_to_text(
         audio_input_path)
     video_converter = TextToVideoConverter(
-        background, duration, audio_len_list, config_data)
+        config_data["background_image"], duration, audio_len_list, config_data)
     video_converter.capture(text_list, video_output_path, audio_input_path)
     print(f'Converted to {video_output_path}!')
