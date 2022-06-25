@@ -15,9 +15,19 @@ Install all packages in "pip_requirements.txt"
 
 Run command:
 
-> python audiotovid.py SAMPLE_AUDIO.mp3 --language='en-US' --background=SAMPLE_BACKGROUND.png --video_out_path=SAMPLE_VIDEO_OUT.mp4
+> python audiotovid.py SAMPLE_AUDIO.mp3 --language='en-US'  --video_out_path=SAMPLE_VIDEO_OUT.mp4
 
-The command outputs a "video.mp4" file in the working directory
+The command outputs a "video.mp4" file in the working directory.
+NOTE: The generated "video.mp4" does not have a progressbar on it. You can add one by following these steps:
+
+1. Go to the "progressbar" directory
+> cd progressbar
+
+2. Run:
+> python3 progbartovid.py SAMPLE_VIDEO_PATH.mp4
+
+NOTE: configurations are done via "config.json" for both "audiotovid.py" and "progbartovid.py"
+
 
 # Note
 
