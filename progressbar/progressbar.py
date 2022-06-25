@@ -9,7 +9,7 @@ class Progressbar:
         self.weight = json_config["progressbar_weight"]
         self.background_size = background_size
         self.json_config = json_config
-        self.fps = 15
+        self.fps = 16
         self.duration = duration * self.fps
 
     def display_progress(self, frame, fullvid_frame, thickness, start_x, start_y) -> None:

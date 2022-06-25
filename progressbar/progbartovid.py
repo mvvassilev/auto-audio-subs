@@ -3,6 +3,7 @@ from cli import CLI
 import os
 import json
 import cv2
+from sys import platform
 import ffmpeg
 from moviepy.editor import VideoFileClip
 
@@ -15,6 +16,23 @@ final_video_path = "../final_video.mp4"
 video_input = "video.mp4"
 audio_input = "audio.mp3"
 
+def setup_for_capture():
+        # deletes "video_output_path" file if already exists (OS spec)
+        if os.path.isfile(final_video_path):
+            if platform == "linux" or platform == "linux2":
+                os.system(f'rm -rf {final_video_path}')
+            elif platform == "win32":
+                os.system(f'del /f {final_video_path}')
+
+def cleanup():
+        # remove temp files
+        if platform == "linux" or platform == "linux2":
+            os.system(f'rm -rf {video_input}')
+            os.system(f'rm -rf {audio_input}')
+        elif platform == "win32":
+            os.system(f'del /f {video_input}')
+            os.system(f'del /f {audio_input}')
+        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     print(f"Adding Progressbar to {video_input_path}...")
@@ -46,6 +64,7 @@ if __name__ == "__main__":
     )
 
     print("Appending progressbar...")
+    setup_for_capture()
     success, frame = vid_capture.read()
     frame_number = 0
     while success:
@@ -60,3 +79,4 @@ if __name__ == "__main__":
     ffmpeg_aud = ffmpeg.input(audio_input)
     ffmpeg.concat(ffmpeg_vid, ffmpeg_aud, v=1,
                   a=1).output(final_video_path).run()
+    cleanup()
