@@ -16,23 +16,26 @@ final_video_path = "../final_video.mp4"
 video_input = "video.mp4"
 audio_input = "audio.mp3"
 
+
 def setup_for_capture():
-        # deletes "video_output_path" file if already exists (OS spec)
-        if os.path.isfile(final_video_path):
-            if platform == "linux" or platform == "linux2":
-                os.system(f'rm -rf {final_video_path}')
-            elif platform == "win32":
-                os.system(f'del /f {final_video_path}')
+    # deletes "video_output_path" file if already exists (OS spec)
+    if os.path.isfile(final_video_path):
+        if platform == "linux" or platform == "linux2":
+            os.system(f'rm -rf {final_video_path}')
+        elif platform == "win32":
+            os.system(f'del /f {final_video_path}')
+
 
 def cleanup():
-        # remove temp files
-        if platform == "linux" or platform == "linux2":
-            os.system(f'rm -rf {video_input}')
-            os.system(f'rm -rf {audio_input}')
-        elif platform == "win32":
-            os.system(f'del /f {video_input}')
-            os.system(f'del /f {audio_input}')
-        cv2.destroyAllWindows()
+    # remove temp files
+    if platform == "linux" or platform == "linux2":
+        os.system(f'rm -rf {video_input}')
+        os.system(f'rm -rf {audio_input}')
+    elif platform == "win32":
+        os.system(f'del /f {video_input}')
+        os.system(f'del /f {audio_input}')
+    cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     print(f"Adding Progressbar to {video_input_path}...")
@@ -54,13 +57,14 @@ if __name__ == "__main__":
 
     audio_clipper = VideoFileClip(video_input_path)
     audio_clipper.audio.write_audiofile(audio_input)
+    duration = vid_capture.get(cv2.CAP_PROP_FRAME_COUNT)
 
     progressbar = Progressbar(
         video_input_path,
         config_data,
         cv2.FONT_HERSHEY_COMPLEX,
         (width, height),
-        audio_clipper.duration
+        duration
     )
 
     print("Appending progressbar...")
@@ -75,7 +79,7 @@ if __name__ == "__main__":
     vid_writer.release()
 
     # add audio to video file
-    ffmpeg_vid = ffmpeg.input(video_input)
+    ffmpeg_vid = ffmpeg.input(video_input, vsync=1)
     ffmpeg_aud = ffmpeg.input(audio_input)
     ffmpeg.concat(ffmpeg_vid, ffmpeg_aud, v=1,
                   a=1).output(final_video_path).run()

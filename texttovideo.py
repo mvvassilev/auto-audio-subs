@@ -1,3 +1,4 @@
+from ctypes import sizeof
 import cv2
 import os
 from textsplitter import TextSplitter
@@ -27,13 +28,14 @@ noaudio_video_filename = "only_video.mp4"
 
 class TextToVideoConverter:
 
-    def __init__(self, background, duration, audio_len_list, json_config) -> None:
+    def __init__(self, background, duration, audio_len_list, json_config, audio_len) -> None:
         self.background = background
         self.json_config = json_config
         self.text_splitter = TextSplitter()
         self.height, self.width, _ = cv2.imread(self.background).shape
         self.duration = duration * 15  # multiply by the fps
         self.segment_lenght_list = list(audio_len_list)
+        self.audio_len = audio_len
         self.fullvid_frame = 0
         self.last_x = 0
 
@@ -41,6 +43,14 @@ class TextToVideoConverter:
         for _ in range(items_count):
             value += next(iterator, default_value)
         return value
+
+    def fix_segments_len(self):
+        total_len = 0
+        for length in self.segment_lenght_list:
+            total_len += length
+        diff = (self.audio_len - total_len) / len(self.segment_lenght_list)
+        for length in self.segment_lenght_list:
+            length += diff
 
     def timestamp_to_sec(self, timestamp_string):
         hours, minutes, seconds = timestamp_string.split(':')
@@ -133,6 +143,7 @@ class TextToVideoConverter:
         vid_writer.write(cv2.imread(self.json_config["thumbnail"]))
 
         sentence_iterator = iter(text_list)
+        self.fix_segments_len()
         for sentence in sentence_iterator:
             video_bg = cv2.imread(self.background)
             sentence = self.add_next(sentence, sentence_iterator, 2, "")
@@ -152,7 +163,7 @@ class TextToVideoConverter:
             segment_iterator = iter(self.segment_lenght_list)
             segment_len = 0
             segment_len = self.add_next(segment_len, segment_iterator, 2, 0)
-            for _ in range(int(segment_len*17)):
+            for _ in range(int(segment_len*15)):
                 chapter_number = self.get_chapter_num(self.fullvid_frame)
                 tmp_image_no_heading = f'dbg/TEMP_{count}.png'
                 tmp_image = f'dbg/TEMP_{chapter_number}_{count}.png'
@@ -195,7 +206,7 @@ class TextToVideoConverter:
         self.display_frames(text_list)
 
         # add audio to video file
-        ffmpeg_vid = ffmpeg.input(noaudio_video_filename)
+        ffmpeg_vid = ffmpeg.input(noaudio_video_filename, vsync=1)
         ffmpeg_aud = ffmpeg.input(audio_input_path)
         ffmpeg.concat(ffmpeg_vid, ffmpeg_aud, v=1,
                       a=1).output(video_output_path).run()

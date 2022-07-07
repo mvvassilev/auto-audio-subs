@@ -1,4 +1,6 @@
 import cv2
+import random
+import math
 
 
 class Progressbar:
@@ -9,14 +11,14 @@ class Progressbar:
         self.weight = json_config["progressbar_weight"]
         self.background_size = background_size
         self.json_config = json_config
-        self.fps = 16
-        self.duration = duration * self.fps
+        self.fps = 15
+        self.duration = duration  # total number of frames
+        self.step = self.background_size[0] / self.duration
 
     def display_progress(self, frame, fullvid_frame, thickness, start_x, start_y) -> None:
         line_color = self.json_config["progress-bar-color:"]
         start_y -= int(thickness/2)
-        end_x = int(fullvid_frame *
-                    (self.background_size[0] / self.duration)) + 1
+        end_x = int(fullvid_frame * self.step)
         end_y = int(start_y + thickness)
         cv2.rectangle(frame, (start_x, start_y), (end_x, end_y),
                       line_color, -1)
@@ -50,7 +52,7 @@ class Progressbar:
         thickness = 50
         start_x = 0
         start_y = self.background_size[1] - 100
-        end_x = self.background_size[0]
+        end_x = self.background_size[0] - 10
         end_y = start_y
         line_color = (210, 210, 210)  # basic light grey
         cv2.line(frame, (start_x, start_y), (end_x, end_y),
